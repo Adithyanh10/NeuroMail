@@ -1,0 +1,14 @@
+prepare:
+  test_size: 0.2
+  random_seed: 42
+
+train:
+  model_name: t5-small
+  epochs: 3
+  batch_size: 16
+  learning_rate: 5e-5
+  max_input_length: 512
+  max_target_length: 128
+
+evaluate:
+  batch_size: 32

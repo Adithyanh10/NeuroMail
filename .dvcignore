@@ -1,0 +1,19 @@
+# DVC ignore file — patterns here are excluded from DVC tracking
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+
+# Jupyter checkpoints
+.ipynb_checkpoints
+
+# Virtual environments
+.venv
+venv
+env
+
+# OS files
+.DS_Store
+Thumbs.db

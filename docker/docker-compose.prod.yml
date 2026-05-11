@@ -1,0 +1,23 @@
+version: "3.9"
+
+# Production overrides — use with:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  backend:
+    image: ${ECR_REGISTRY}/email-backend:${IMAGE_TAG:-latest}
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ml-server:
+    image: ${ECR_REGISTRY}/email-ml-server:${IMAGE_TAG:-latest}
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,0 +1,45 @@
+stages:
+  # ── Data preparation ─────────────────────────────────────────────────────────
+  prepare:
+    cmd: python ml-server/scripts/prepare_data.py
+    deps:
+      - ml-server/data/email_dataset_2.0.csv
+      - ml-server/scripts/prepare_data.py
+    params:
+      - params.yaml:
+          - prepare.test_size
+          - prepare.random_seed
+    outs:
+      - ml-server/data/train.csv
+      - ml-server/data/test.csv
+
+  # ── Model training ────────────────────────────────────────────────────────────
+  train:
+    cmd: python ml-server/scripts/train.py
+    deps:
+      - ml-server/data/train.csv
+      - ml-server/scripts/train.py
+      - ml-server/app/model/trainer.py
+    params:
+      - params.yaml:
+          - train.epochs
+          - train.batch_size
+          - train.learning_rate
+          - train.model_name
+    outs:
+      - ml-server/models/email_reply_model.pkl
+    metrics:
+      - ml-server/metrics/train_metrics.json:
+          cache: false
+
+  # ── Model evaluation ──────────────────────────────────────────────────────────
+  evaluate:
+    cmd: python ml-server/scripts/evaluate.py
+    deps:
+      - ml-server/data/test.csv
+      - ml-server/models/email_reply_model.pkl
+      - ml-server/scripts/evaluate.py
+      - ml-server/app/model/inference.py
+    metrics:
+      - ml-server/metrics/eval_metrics.json:
+          cache: false

@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  # ── Backend ──────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: email_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    environment:
+      - ML_SERVER_URL=http://ml-server:8001
+    depends_on:
+      - ml-server
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── ML Server ─────────────────────────────────────────────────────────────────
+  ml-server:
+    build:
+      context: ../ml-server
+      dockerfile: Dockerfile
+    container_name: email_ml_server
+    ports:
+      - "8001:8001"
+    env_file:
+      - ../ml-server/.env
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge
