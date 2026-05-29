@@ -94,7 +94,7 @@ export default function InsightsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
               <Target size={20} className="text-blue-600" />
-              <h2 className="font-semibold text-gray-900">This Week's Goals</h2>
+              <h2 className="font-semibold text-gray-900">This Week&apos;s Goals</h2>
             </div>
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-gray-700">
