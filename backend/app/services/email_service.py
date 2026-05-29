@@ -83,8 +83,11 @@ async def create_reply(payload: GenerateReplyRequest, current_user: User, db: As
         meeting_dates=ml.get("meeting_dates",[]),
         meeting_times=ml.get("meeting_times",[]),
         meeting_participants=ml.get("meeting_participants",[]),
+        # Feature 15
         extracted_tasks=ml.get("extracted_tasks",[]),
         total_tasks=ml.get("total_tasks",0),
+        # Feature 21 — Tone Heatmap
+        tone_heatmap=ml.get("tone_heatmap",[]),
     )
 
 

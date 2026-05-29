@@ -8,7 +8,8 @@ from app.model.advanced_engine import (
     score_reply, generate_multi_replies, summarize_email,
     correct_grammar_and_formality, detect_spam_and_risk,
     detect_language, extract_meeting_info, extract_action_items,
-    generate_signature, humanize_reply,
+    generate_signature, humanize_reply, generate_tone_heatmap,
+    check_reply_risks,
 )
 
 def preprocess(email_content: str) -> str:
@@ -106,6 +107,9 @@ def run_inference(model: Any, email_content: str, tone: str, subject: str = "") 
     # ── Feature 16: Humanize Reply ────────────────────────────────────────────
     humanized_reply = humanize_reply(base_reply)
 
+    # ── Feature 21: Tone Heatmap ──────────────────────────────────────────────
+    tone_heatmap = generate_tone_heatmap(processed)
+
     # ── Assemble final reply with signature ───────────────────────────────────
     final_reply = humanized_reply
     if not final_reply.strip().endswith(signature.split("\n")[0]):
@@ -114,6 +118,9 @@ def run_inference(model: Any, email_content: str, tone: str, subject: str = "") 
     confidence = base_result.get("confidence", 0.75)
     if is_urgent and predicted_priority == "High":
         confidence = min(1.0, confidence + 0.05)
+
+    # ── Feature 22: Reply Risk Checker ───────────────────────────────────────
+    reply_risks = check_reply_risks(final_reply, incoming_emotion=emotion_data["emotion"])
 
     return {
         # Core
@@ -164,4 +171,16 @@ def run_inference(model: Any, email_content: str, tone: str, subject: str = "") 
         # Feature 15
         "extracted_tasks":     action_data["action_items"],
         "total_tasks":         action_data["total_tasks"],
+        # Feature 21 — Tone Heatmap
+        "tone_heatmap":        tone_heatmap,
+        # Feature 22 — Reply Risk Checker
+        "reply_risk_issues":   reply_risks["issues"],
+        "reply_risk_score":    reply_risks["risk_score"],
+        "reply_overall_risk":  reply_risks["overall_risk"],
+        "reply_safe_to_send":  reply_risks["safe_to_send"],
+        "reply_risk_counts":   {
+            "high":   reply_risks["high_count"],
+            "medium": reply_risks["medium_count"],
+            "low":    reply_risks["low_count"],
+        },
     }

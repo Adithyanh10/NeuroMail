@@ -3,14 +3,20 @@ Integration tests for the /predict endpoint.
 """
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from app.main import app
 
 
+@pytest.fixture(autouse=True)
+async def started_app():
+    async with app.router.lifespan_context(app):
+        yield
+
+
 @pytest.mark.asyncio
 async def test_predict_professional():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/predict",
             json={
@@ -27,7 +33,7 @@ async def test_predict_professional():
 
 @pytest.mark.asyncio
 async def test_predict_invalid_tone():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/predict",
             json={"email_content": "Hello there.", "tone": "aggressive"},
@@ -37,7 +43,7 @@ async def test_predict_invalid_tone():
 
 @pytest.mark.asyncio
 async def test_predict_too_short_content():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/predict",
             json={"email_content": "Hi", "tone": "formal"},
@@ -47,7 +53,7 @@ async def test_predict_too_short_content():
 
 @pytest.mark.asyncio
 async def test_health():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"

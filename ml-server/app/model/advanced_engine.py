@@ -509,6 +509,190 @@ def generate_signature(intent: str, category: str) -> str:
     return SIGNATURES.get(key, SIGNATURES["general"])
 
 
+# ─── 22. REPLY RISK CHECKER ──────────────────────────────────────────────────
+
+REPLY_RISK_RULES = [
+    # Promises you might not keep
+    {
+        "category": "Unverifiable Promise",
+        "severity": "high",
+        "icon": "⚠️",
+        "patterns": [
+            r"\bguarantee\b", r"\bwill definitely\b", r"\b100%\b",
+            r"\bwithout fail\b", r"\babsolutely will\b", r"\bpromise\b",
+            r"\bwill always\b", r"\bwill never\b",
+        ],
+        "tip": "Avoid absolute guarantees — use 'we aim to' or 'we will do our best' instead.",
+    },
+    # Aggressive or confrontational tone
+    {
+        "category": "Aggressive Tone",
+        "severity": "high",
+        "icon": "🔥",
+        "patterns": [
+            r"\byou must\b", r"\byou need to\b", r"\bimmediately\b",
+            r"\bfinal warning\b", r"\blast chance\b", r"\bdemand\b",
+            r"\bnon-negotiable\b", r"\bunacceptable\b",
+        ],
+        "tip": "Soften commanding language — replace 'you must' with 'we kindly request'.",
+    },
+    # Legal risk words
+    {
+        "category": "Legal Risk",
+        "severity": "high",
+        "icon": "⚖️",
+        "patterns": [
+            r"\bliable\b", r"\blawsuit\b", r"\blegal action\b",
+            r"\bsue\b", r"\bcompensation\b", r"\bindemnify\b",
+            r"\bbreach of contract\b", r"\bnegligence\b", r"\bpenalty\b",
+        ],
+        "tip": "Legal language in replies can escalate disputes — consult legal before sending.",
+    },
+    # Missing apology when needed
+    {
+        "category": "Missing Apology",
+        "severity": "medium",
+        "icon": "🤝",
+        "patterns": [],  # checked contextually below
+        "tip": "The incoming email seems upset — consider adding an apology or acknowledgment.",
+    },
+    # Overly casual for business context
+    {
+        "category": "Too Casual",
+        "severity": "low",
+        "icon": "😅",
+        "patterns": [
+            r"\bhey\b", r"\byeah\b", r"\bnope\b", r"\bgonna\b",
+            r"\bwanna\b", r"\bchill\b", r"\bno worries\b", r"\bcool\b",
+            r"\bawesome\b", r"\bstuff\b", r"\bkinda\b",
+        ],
+        "tip": "Casual language may seem unprofessional in business emails.",
+    },
+    # Vague commitments
+    {
+        "category": "Vague Commitment",
+        "severity": "medium",
+        "icon": "🌫️",
+        "patterns": [
+            r"\bsoon\b", r"\bin due course\b", r"\bat some point\b",
+            r"\bwhenever possible\b", r"\bas soon as we can\b",
+            r"\bwe'll try\b", r"\bwe might\b", r"\bperhaps\b",
+        ],
+        "tip": "Vague timelines frustrate senders — add a specific timeframe like '24-48 hours'.",
+    },
+    # Sensitive data exposure
+    {
+        "category": "Sensitive Data",
+        "severity": "high",
+        "icon": "🔒",
+        "patterns": [
+            r"\bpassword\b", r"\bpin\b", r"\bcredit card\b",
+            r"\bsocial security\b", r"\baccount number\b",
+            r"\bssn\b", r"\bcvv\b", r"\bbank details\b",
+        ],
+        "tip": "Never include sensitive data like passwords or account numbers in email replies.",
+    },
+]
+
+def check_reply_risks(reply: str, incoming_emotion: str = "neutral") -> dict:
+    """
+    Scan the generated reply for potential risks before sending.
+    Returns a list of flagged issues with severity, category, and fix tips.
+    """
+    reply_lower = reply.lower()
+    issues = []
+
+    for rule in REPLY_RISK_RULES:
+        # Special case: missing apology check
+        if rule["category"] == "Missing Apology":
+            if incoming_emotion in ("angry", "frustrated"):
+                apology_words = ["sorry","apologize","apologies","regret","understand your frustration"]
+                has_apology = any(w in reply_lower for w in apology_words)
+                if not has_apology:
+                    issues.append({
+                        "category": rule["category"],
+                        "severity": rule["severity"],
+                        "icon":     rule["icon"],
+                        "matched":  "No apology detected",
+                        "tip":      rule["tip"],
+                    })
+            continue
+
+        for pattern in rule["patterns"]:
+            if re.search(pattern, reply_lower):
+                issues.append({
+                    "category": rule["category"],
+                    "severity": rule["severity"],
+                    "icon":     rule["icon"],
+                    "matched":  pattern.replace(r"\b", ""),
+                    "tip":      rule["tip"],
+                })
+                break  # one issue per category
+
+    # Overall risk score
+    severity_weights = {"high": 0.35, "medium": 0.15, "low": 0.05}
+    risk_score = min(1.0, sum(severity_weights.get(i["severity"], 0) for i in issues))
+    overall = "high" if risk_score >= 0.6 else "medium" if risk_score >= 0.25 else "low"
+
+    return {
+        "issues":            issues,
+        "total_issues":      len(issues),
+        "high_count":        sum(1 for i in issues if i["severity"] == "high"),
+        "medium_count":      sum(1 for i in issues if i["severity"] == "medium"),
+        "low_count":         sum(1 for i in issues if i["severity"] == "low"),
+        "overall_risk":      overall,
+        "risk_score":        round(risk_score, 3),
+        "safe_to_send":      overall == "low",
+    }
+
+
+# ─── 21. EMAIL TONE HEATMAP ──────────────────────────────────────────────────
+
+HEATMAP_TONE_KEYWORDS = {
+    "angry":       (["angry","furious","unacceptable","ridiculous","terrible","worst","hate","demand","disgusting","outraged"], "#ef4444", "🔴"),
+    "urgent":      (["urgent","asap","immediately","emergency","critical","deadline","today","right now","time sensitive"], "#f97316", "🟠"),
+    "frustrated":  (["frustrated","annoyed","disappointed","fed up","tired of","still not","again","no response","multiple times"], "#f59e0b", "🟡"),
+    "positive":    (["thank","great","excellent","wonderful","happy","pleased","appreciate","fantastic","amazing","perfect","love"], "#22c55e", "🟢"),
+    "neutral":     ([], "#6b7280", "⚪"),
+}
+
+def generate_tone_heatmap(text: str) -> list:
+    """
+    Split email into sentences and assign a tone/color to each.
+    Returns a list of {text, tone, color, emoji, intensity} dicts.
+    """
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    sentences = [s.strip() for s in sentences if s.strip()]
+
+    result = []
+    for sentence in sentences:
+        s_lower = sentence.lower()
+        best_tone = "neutral"
+        best_score = 0
+
+        for tone, (keywords, color, emoji) in HEATMAP_TONE_KEYWORDS.items():
+            if not keywords:
+                continue
+            score = sum(1 for kw in keywords if kw in s_lower)
+            if score > best_score:
+                best_score = score
+                best_tone = tone
+
+        tone_data = HEATMAP_TONE_KEYWORDS[best_tone]
+        intensity = min(1.0, round(best_score * 0.25 + 0.3, 2)) if best_score > 0 else 0.2
+
+        result.append({
+            "text":      sentence,
+            "tone":      best_tone,
+            "color":     tone_data[1],
+            "emoji":     tone_data[2],
+            "intensity": intensity,
+        })
+
+    return result
+
+
 # ─── 16. HUMAN-LIKE ENHANCEMENT ──────────────────────────────────────────────
 
 ROBOTIC_PHRASES = {

@@ -7,31 +7,35 @@ import { useAuthStore } from "@/store/authStore";
 import {
   X, LayoutDashboard, Clock, BarChart2, Zap,
   Wand2, User, Upload, LogOut, Mail, Sparkles,
-  ChevronRight, Shield,
+  ChevronRight, Shield, Brain, GraduationCap, Trophy, Home,
 } from "lucide-react";
 
 const NAV_SECTIONS = [
   {
     title: "Main",
     items: [
-      { href: "/dashboard",     label: "Dashboard",   icon: LayoutDashboard },
-      { href: "/history/list",  label: "History",     icon: Clock },
-      { href: "/analytics",     label: "Analytics",   icon: BarChart2 },
+      { href: "/home",          label: "Home",         icon: Home },
+      { href: "/dashboard",     label: "Dashboard",    icon: LayoutDashboard },
+      { href: "/history/list",  label: "History",      icon: Clock },
+      { href: "/analytics",     label: "Analytics",    icon: BarChart2 },
+      { href: "/insights",      label: "AI Insights",  icon: Brain },
     ],
   },
   {
     title: "AI Tools",
     items: [
-      { href: "/streaming",     label: "Live Stream", icon: Zap },
-      { href: "/grammar",       label: "Grammar Fix", icon: Wand2 },
-      { href: "/writing-style", label: "My Style",    icon: Sparkles },
+      { href: "/streaming",     label: "Live Stream",  icon: Zap },
+      { href: "/grammar",       label: "Grammar Fix",  icon: Wand2 },
+      { href: "/email-coach",   label: "Email Coach",  icon: GraduationCap },
+      { href: "/writing-style", label: "My Style",     icon: Sparkles },
     ],
   },
   {
     title: "Account",
     items: [
-      { href: "/profile",       label: "My Profile",  icon: User },
-      { href: "/upload",        label: "Upload Email",icon: Upload },
+      { href: "/achievements",  label: "Achievements", icon: Trophy },
+      { href: "/profile",       label: "My Profile",   icon: User },
+      { href: "/upload",        label: "Upload Email", icon: Upload },
     ],
   },
 ];

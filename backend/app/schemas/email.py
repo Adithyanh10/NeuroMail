@@ -39,6 +39,28 @@ class ActionItem(BaseModel):
     assignee: str
 
 
+class HeatmapSegment(BaseModel):
+    text: str
+    tone: str
+    color: str
+    emoji: str
+    intensity: float
+
+
+class RiskIssue(BaseModel):
+    category: str
+    severity: str
+    icon: str
+    matched: str
+    tip: str
+
+
+class RiskCounts(BaseModel):
+    high: int
+    medium: int
+    low: int
+
+
 class GenerateReplyResponse(BaseModel):
     # Core
     reply: str
@@ -89,6 +111,14 @@ class GenerateReplyResponse(BaseModel):
     # Feature 15 — Action Items
     extracted_tasks: List[ActionItem]
     total_tasks: int
+    # Feature 21 — Tone Heatmap
+    tone_heatmap: List[HeatmapSegment] = []
+    # Feature 22 — Reply Risk Checker
+    reply_risk_issues: List[RiskIssue] = []
+    reply_risk_score: float = 0.0
+    reply_overall_risk: str = "low"
+    reply_safe_to_send: bool = True
+    reply_risk_counts: RiskCounts = RiskCounts(high=0, medium=0, low=0)
 
 
 class EmailHistoryItem(BaseModel):

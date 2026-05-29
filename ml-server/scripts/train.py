@@ -1,19 +1,18 @@
 """
-Model training script — uses email_dataset_2.0.csv
-Run directly:  python ml-server/scripts/train.py
-Run via DVC:   dvc repro train
+Training entry point — run from project root:
+  python ml-server/scripts/train.py
 """
-
 import sys
 from pathlib import Path
 
-# Allow running from project root
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+# Add ml-server to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ml_server.app.model.trainer import run_training
+from app.model.trainer import run_training
 
 if __name__ == "__main__":
     metrics = run_training()
-    print("\nFinal metrics:")
+    print("\nFinal Metrics:")
     for k, v in metrics.items():
-        print(f"  {k}: {v}")
+        if k != "full_report":
+            print(f"  {k}: {v}")

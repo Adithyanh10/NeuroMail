@@ -60,7 +60,7 @@ export default function LoginPage() {
 
   // Called when animation finishes
   const handleAnimDone = () => {
-    router.push("/dashboard");
+    router.push("/home");
   };
 
   return (

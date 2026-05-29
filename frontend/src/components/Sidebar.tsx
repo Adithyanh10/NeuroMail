@@ -1,17 +1,20 @@
 ﻿"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Clock, Upload, BarChart2, Wand2, Sparkles, Zap, User } from "lucide-react";
+import { LayoutDashboard, Clock, Upload, BarChart2, Wand2, Sparkles, Zap, User, Brain, GraduationCap, Trophy } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/dashboard",      label: "Dashboard",     icon: LayoutDashboard },
-  { href: "/history/list",   label: "History",       icon: Clock },
-  { href: "/analytics",      label: "Analytics",     icon: BarChart2 },
-  { href: "/streaming",      label: "Live Stream",   icon: Zap },
-  { href: "/grammar",        label: "Grammar Fix",   icon: Wand2 },
-  { href: "/writing-style",  label: "My Style",      icon: User },
-  { href: "/profile",        label: "My Profile",    icon: User },
-  { href: "/upload",         label: "Upload",        icon: Upload },
+  { href: "/dashboard",     label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/history/list",  label: "History",      icon: Clock },
+  { href: "/analytics",     label: "Analytics",    icon: BarChart2 },
+  { href: "/insights",      label: "AI Insights",  icon: Brain },
+  { href: "/streaming",     label: "Live Stream",  icon: Zap },
+  { href: "/grammar",       label: "Grammar Fix",  icon: Wand2 },
+  { href: "/email-coach",   label: "Email Coach",  icon: GraduationCap },
+  { href: "/writing-style", label: "My Style",     icon: Sparkles },
+  { href: "/achievements",  label: "Achievements", icon: Trophy },
+  { href: "/profile",       label: "My Profile",   icon: User },
+  { href: "/upload",        label: "Upload",       icon: Upload },
 ];
 
 export default function Sidebar() {

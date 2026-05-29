@@ -27,6 +27,7 @@ export interface MultiReplies {
   short_reply: string; detailed_reply: string; persuasive_reply: string;
 }
 export interface ActionItem { task: string; priority: string; assignee: string; }
+export interface HeatmapSegment { text: string; tone: string; color: string; emoji: string; intensity: number; }
 
 export interface GenerateReplyPayload {
   email_content: string; tone: Tone; subject?: string;
@@ -61,6 +62,8 @@ export interface GenerateReplyResponse {
   meeting_times: string[]; meeting_participants: string[];
   // Feature 15 — Tasks
   extracted_tasks: ActionItem[]; total_tasks: number;
+  // Feature 21 — Tone Heatmap
+  tone_heatmap: HeatmapSegment[];
 }
 
 export interface EmailHistoryItem {

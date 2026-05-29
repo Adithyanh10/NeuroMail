@@ -27,6 +27,25 @@ class MultiReplies(BaseModel):
     detailed_reply: str
     persuasive_reply: str
 
+class HeatmapSegment(BaseModel):
+    text: str
+    tone: str
+    color: str
+    emoji: str
+    intensity: float
+
+class RiskIssue(BaseModel):
+    category: str
+    severity: str
+    icon: str
+    matched: str
+    tip: str
+
+class RiskCounts(BaseModel):
+    high: int
+    medium: int
+    low: int
+
 class ActionItem(BaseModel):
     task: str
     priority: str
@@ -81,6 +100,14 @@ class PredictResponse(BaseModel):
     # Feature 15 — Action Items
     extracted_tasks: List[ActionItem]
     total_tasks: int
+    # Feature 21 — Tone Heatmap
+    tone_heatmap: List[HeatmapSegment]
+    # Feature 22 — Reply Risk Checker
+    reply_risk_issues: List[RiskIssue]
+    reply_risk_score: float
+    reply_overall_risk: str
+    reply_safe_to_send: bool
+    reply_risk_counts: RiskCounts
 
 @router.post("/predict", response_model=PredictResponse)
 async def predict(payload: PredictRequest, request: Request) -> PredictResponse:

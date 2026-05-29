@@ -8,24 +8,32 @@ import { LogOut, Mail, ArrowLeft, ChevronRight, Menu } from "lucide-react";
 import DrawerNav from "./DrawerNav";
 
 const BACK_PAGES: Record<string, string> = {
-  "/analytics":     "/dashboard",
-  "/grammar":       "/dashboard",
-  "/writing-style": "/dashboard",
-  "/streaming":     "/dashboard",
-  "/upload":        "/dashboard",
-  "/history/list":  "/dashboard",
-  "/profile":       "/dashboard",
+  "/dashboard":     "/home",
+  "/analytics":     "/home",
+  "/insights":      "/home",
+  "/grammar":       "/home",
+  "/writing-style": "/home",
+  "/streaming":     "/home",
+  "/upload":        "/home",
+  "/history/list":  "/home",
+  "/profile":       "/home",
+  "/email-coach":   "/home",
+  "/achievements":  "/home",
 };
 
 const CRUMB_MAP: Record<string, string> = {
+  "/home":          "Home",
   "/dashboard":     "Dashboard",
   "/analytics":     "Analytics",
+  "/insights":      "AI Insights",
   "/grammar":       "Grammar Fix",
   "/writing-style": "Writing Style",
   "/streaming":     "Live Stream",
   "/upload":        "Upload",
   "/history/list":  "History",
   "/profile":       "My Profile",
+  "/email-coach":   "Email Coach",
+  "/achievements":  "Achievements",
 };
 
 export default function Navbar() {
@@ -77,7 +85,7 @@ export default function Navbar() {
             )}
 
             {/* Logo */}
-            <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
+            <Link href="/home" className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Mail size={15} className="text-white" />
               </div>

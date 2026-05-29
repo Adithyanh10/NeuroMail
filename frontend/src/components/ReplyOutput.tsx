@@ -1,6 +1,6 @@
 ﻿"use client";
 import { useState } from "react";
-import { Copy, Check, AlertTriangle, Tag, ArrowUp, Star, Shield, Globe, Calendar, CheckSquare, Zap, Brain, MessageSquare } from "lucide-react";
+import { Copy, Check, AlertTriangle, Tag, ArrowUp, Star, Shield, Globe, Calendar, CheckSquare, Zap, Brain, MessageSquare, Flame } from "lucide-react";
 import toast from "react-hot-toast";
 import { submitFeedback } from "@/lib/api";
 import type { GenerateReplyResponse } from "@/types";
@@ -24,7 +24,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 
 export default function ReplyOutput({ result }: { result: GenerateReplyResponse }) {
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"reply"|"multi"|"analysis"|"tasks"|"meeting">("reply");
+  const [activeTab, setActiveTab] = useState<"reply"|"multi"|"analysis"|"tasks"|"meeting"|"heatmap">("reply");
   const [rating, setRating] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
@@ -42,11 +42,12 @@ export default function ReplyOutput({ result }: { result: GenerateReplyResponse 
   };
 
   const tabs = [
-    { id: "reply", label: "Reply", icon: MessageSquare },
-    { id: "multi", label: "3 Styles", icon: Zap },
+    { id: "reply",    label: "Reply",    icon: MessageSquare },
+    { id: "multi",    label: "3 Styles", icon: Zap },
     { id: "analysis", label: "Analysis", icon: Brain },
-    { id: "tasks", label: `Tasks (${result.total_tasks})`, icon: CheckSquare },
-    { id: "meeting", label: "Meeting", icon: Calendar },
+    { id: "tasks",    label: `Tasks (${result.total_tasks})`, icon: CheckSquare },
+    { id: "meeting",  label: "Meeting",  icon: Calendar },
+    { id: "heatmap",  label: "Heatmap",  icon: Flame },
   ] as const;
 
   return (
@@ -203,6 +204,93 @@ export default function ReplyOutput({ result }: { result: GenerateReplyResponse 
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Tab: Tone Heatmap */}
+          {activeTab === "heatmap" && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">
+                Each sentence is color-coded by its emotional tone. Hover over a sentence to see its tone label.
+              </p>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { tone: "angry",      color: "#ef4444", emoji: "🔴" },
+                  { tone: "urgent",     color: "#f97316", emoji: "🟠" },
+                  { tone: "frustrated", color: "#f59e0b", emoji: "🟡" },
+                  { tone: "positive",   color: "#22c55e", emoji: "🟢" },
+                  { tone: "neutral",    color: "#6b7280", emoji: "⚪" },
+                ].map(({ tone, color, emoji }) => (
+                  <span key={tone} className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
+                    <span>{emoji}</span>
+                    <span className="capitalize">{tone}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Heatmap sentences */}
+              <div className="space-y-2">
+                {result.tone_heatmap && result.tone_heatmap.length > 0 ? (
+                  result.tone_heatmap.map((segment, i) => (
+                    <div
+                      key={i}
+                      title={`Tone: ${segment.tone} (intensity: ${Math.round(segment.intensity * 100)}%)`}
+                      className="flex items-start gap-2 p-3 rounded-lg border transition-all hover:shadow-sm cursor-default"
+                      style={{
+                        backgroundColor: `${segment.color}18`,
+                        borderColor: `${segment.color}40`,
+                        borderLeftWidth: "4px",
+                        borderLeftColor: segment.color,
+                      }}
+                    >
+                      <span className="text-base shrink-0 mt-0.5">{segment.emoji}</span>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-800 leading-relaxed">{segment.text}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span
+                            className="text-xs font-medium px-2 py-0.5 rounded-full capitalize"
+                            style={{ backgroundColor: `${segment.color}25`, color: segment.color }}
+                          >
+                            {segment.tone}
+                          </span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-1">
+                            <div
+                              className="h-1 rounded-full transition-all"
+                              style={{ width: `${Math.round(segment.intensity * 100)}%`, backgroundColor: segment.color }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-400">{Math.round(segment.intensity * 100)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400 text-center py-4">No heatmap data available.</p>
+                )}
+              </div>
+
+              {/* Tone summary */}
+              {result.tone_heatmap && result.tone_heatmap.length > 0 && (() => {
+                const counts: Record<string, number> = {};
+                result.tone_heatmap.forEach(s => { counts[s.tone] = (counts[s.tone] || 0) + 1; });
+                const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+                return (
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Tone Summary</p>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(counts).map(([tone, count]) => (
+                        <span key={tone} className="text-xs bg-white border border-gray-200 px-2 py-1 rounded-full capitalize">
+                          {tone}: <strong>{count}</strong> sentence{count > 1 ? "s" : ""}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Dominant tone: <strong className="capitalize">{dominant[0]}</strong>
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
