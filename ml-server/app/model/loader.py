@@ -8,7 +8,10 @@ import pickle
 from pathlib import Path
 from typing import Any
 
-MODEL_PATH = Path(os.getenv("MODEL_PATH", "ml-server/models/email_reply_model.pkl"))
+# Resolve MODEL_PATH relative to this file's location so it works regardless
+# of the working directory the server is launched from.
+_HERE = Path(__file__).resolve().parent.parent.parent  # ml-server/
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(_HERE / "models" / "email_reply_model.pkl")))
 
 
 def load_model() -> Any:

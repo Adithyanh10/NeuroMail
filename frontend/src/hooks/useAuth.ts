@@ -14,7 +14,7 @@ export function useAuth() {
 
   const login = async (payload: LoginPayload) => {
     const response = await apiLogin(payload);
-    storeLogin(response.access_token);
+    storeLogin(response.access_token, response.username, response.email, response.user_id);
     toast.success("Welcome back!");
     router.push("/dashboard");
   };

@@ -28,9 +28,11 @@ from sklearn.preprocessing import LabelEncoder
 
 # ─── Paths ────────────────────────────────────────────────────────────────────
 
-DATA_PATH   = Path(os.getenv("DATA_PATH",  "ml-server/data/email_dataset_2.0.csv"))
-MODEL_DIR   = Path(os.getenv("MODEL_DIR",  "ml-server/models"))
-METRICS_DIR = Path(os.getenv("METRICS_DIR","ml-server/metrics"))
+_HERE = Path(__file__).resolve().parent.parent.parent  # ml-server/
+
+DATA_PATH   = Path(os.getenv("DATA_PATH",  str(_HERE / "data"    / "email_dataset_2.0.csv")))
+MODEL_DIR   = Path(os.getenv("MODEL_DIR",  str(_HERE / "models")))
+METRICS_DIR = Path(os.getenv("METRICS_DIR",str(_HERE / "metrics")))
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 METRICS_DIR.mkdir(parents=True, exist_ok=True)

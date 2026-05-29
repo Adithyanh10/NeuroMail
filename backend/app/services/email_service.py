@@ -47,6 +47,7 @@ async def create_reply(payload: GenerateReplyRequest, current_user: User, db: As
     )
     db.add(history)
     await db.flush()
+    await db.commit()
 
     return GenerateReplyResponse(
         reply=ml["reply"], tone=payload.tone,
