@@ -198,7 +198,7 @@ export default function EmailCoachPage() {
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                <p className="text-sm text-blue-800 font-medium mb-2">🎓 What You'll Learn:</p>
+                <p className="text-sm text-blue-800 font-medium mb-2">🎓  What You&apos;ll Learn:</p>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Write professional emails with confidence</li>
                   <li>• Understand tone and formality levels</li>
