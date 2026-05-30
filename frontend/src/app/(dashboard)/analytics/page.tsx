@@ -42,17 +42,20 @@ const COLORS = ["bg-blue-500","bg-green-500","bg-yellow-500","bg-purple-500","bg
 
 export default function AnalyticsPage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (!isAuthenticated) { router.push("/login"); return; }
-    getAnalytics().then(setData).finally(() => setLoading(false));
-  }, [isAuthenticated, router]);
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) return null;
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getAnalytics().then(setData).finally(() => setLoading(false));
+  }, [isAuthenticated]);
+
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

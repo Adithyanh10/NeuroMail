@@ -9,14 +9,13 @@ import Navbar from "@/components/Navbar";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
 
-  useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (!isAuthenticated) router.push("/login");
-  }, [isAuthenticated, router]);
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) return null;
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

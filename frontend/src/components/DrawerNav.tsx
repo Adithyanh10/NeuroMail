@@ -14,7 +14,8 @@ const NAV_SECTIONS = [
   {
     title: "Main",
     items: [
-      { href: "/dashboard",     label: "Dashboard",   icon: LayoutDashboard },
+      { href: "/home",          label: "Home",        icon: LayoutDashboard },
+      { href: "/dashboard",     label: "Dashboard",   icon: Mail },
       { href: "/history/list",  label: "History",     icon: Clock },
       { href: "/analytics",     label: "Analytics",   icon: BarChart2 },
     ],
@@ -22,9 +23,12 @@ const NAV_SECTIONS = [
   {
     title: "AI Tools",
     items: [
-      { href: "/streaming",     label: "Live Stream", icon: Zap },
-      { href: "/grammar",       label: "Grammar Fix", icon: Wand2 },
-      { href: "/writing-style", label: "My Style",    icon: Sparkles },
+      { href: "/streaming",        label: "Live Stream",      icon: Zap },
+      { href: "/grammar",          label: "Grammar Fix",      icon: Wand2 },
+      { href: "/writing-style",    label: "My Style",         icon: Sparkles },
+      { href: "/spam-detector",    label: "Spam Detector",    icon: Shield },
+      { href: "/meeting-detector", label: "Meeting Detector", icon: LayoutDashboard },
+      { href: "/summarizer",       label: "Email Summarizer", icon: BarChart2 },
     ],
   },
   {

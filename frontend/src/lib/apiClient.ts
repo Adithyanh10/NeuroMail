@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 const TOKEN_KEY = "access_token";
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   headers: { "Content-Type": "application/json" },
   timeout: 30000,
 });
@@ -25,11 +25,15 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor: handle 401 globally ────────────────────────────────
+// ── Response interceptor: handle 401 globally (skip auth endpoints) ──────────
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/login") || url.includes("/register");
+
+    // Only auto-redirect on 401 for protected endpoints, not login/register
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       Cookies.remove(TOKEN_KEY);
       if (typeof window !== "undefined") {
         window.location.href = "/login";
@@ -44,8 +48,8 @@ apiClient.interceptors.response.use(
 export function saveToken(token: string, expiresInSeconds: number): void {
   Cookies.set(TOKEN_KEY, token, {
     expires: expiresInSeconds / 86400, // convert seconds → days
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: false, // allow on localhost (http)
+    sameSite: "lax",
   });
 }
 

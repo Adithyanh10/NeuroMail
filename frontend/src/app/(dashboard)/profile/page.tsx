@@ -36,18 +36,21 @@ function StatBadge({ icon: Icon, label, value, color }: {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate, username, email, userId, logout } = useAuthStore();
+  const { isAuthenticated, isHydrated, username, email, userId, logout } = useAuthStore();
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [style, setStyle]         = useState<WritingStyleProfile | null>(null);
   const [loading, setLoading]     = useState(true);
 
-  useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (!isAuthenticated) { router.push("/login"); return; }
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     Promise.all([getAnalytics(), getWritingStyle()])
       .then(([a, s]) => { setAnalytics(a); setStyle(s); })
       .finally(() => setLoading(false));
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   const handleLogout = () => { logout(); router.push("/login"); };
 
@@ -57,7 +60,7 @@ export default function ProfilePage() {
 
   const joinDate = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-  if (!isAuthenticated) return null;
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

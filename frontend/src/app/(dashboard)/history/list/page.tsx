@@ -18,7 +18,7 @@ const GRADE_BADGE: Record<string, string> = {
 
 export default function HistoryListPage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [items, setItems] = useState<EmailHistoryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -29,8 +29,9 @@ export default function HistoryListPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
-  useEffect(() => { hydrate(); }, [hydrate]);
-  useEffect(() => { if (!isAuthenticated) router.push("/login"); }, [isAuthenticated, router]);
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -44,7 +45,7 @@ export default function HistoryListPage() {
   const clearFilters = () => { setFilters({ category: "", priority: "", tone: "", intent: "", emotion: "" }); setPage(1); };
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-  if (!isAuthenticated) return null;
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

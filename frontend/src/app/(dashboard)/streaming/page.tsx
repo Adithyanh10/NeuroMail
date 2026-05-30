@@ -49,7 +49,7 @@ export default function StreamingPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/generate-reply/stream`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/generate-reply/stream`,
         {
           method: "POST",
           headers: {

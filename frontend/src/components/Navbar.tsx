@@ -8,24 +8,31 @@ import { LogOut, Mail, ArrowLeft, ChevronRight, Menu } from "lucide-react";
 import DrawerNav from "./DrawerNav";
 
 const BACK_PAGES: Record<string, string> = {
-  "/analytics":     "/dashboard",
-  "/grammar":       "/dashboard",
-  "/writing-style": "/dashboard",
-  "/streaming":     "/dashboard",
-  "/upload":        "/dashboard",
-  "/history/list":  "/dashboard",
-  "/profile":       "/dashboard",
+  "/analytics":        "/dashboard",
+  "/grammar":          "/dashboard",
+  "/writing-style":    "/dashboard",
+  "/streaming":        "/dashboard",
+  "/upload":           "/dashboard",
+  "/history/list":     "/dashboard",
+  "/profile":          "/dashboard",
+  "/spam-detector":    "/home",
+  "/meeting-detector": "/home",
+  "/summarizer":       "/home",
 };
 
 const CRUMB_MAP: Record<string, string> = {
-  "/dashboard":     "Dashboard",
-  "/analytics":     "Analytics",
-  "/grammar":       "Grammar Fix",
-  "/writing-style": "Writing Style",
-  "/streaming":     "Live Stream",
-  "/upload":        "Upload",
-  "/history/list":  "History",
-  "/profile":       "My Profile",
+  "/home":             "Home",
+  "/dashboard":        "Dashboard",
+  "/analytics":        "Analytics",
+  "/grammar":          "Grammar Fix",
+  "/writing-style":    "Writing Style",
+  "/streaming":        "Live Stream",
+  "/upload":           "Upload",
+  "/history/list":     "History",
+  "/profile":          "My Profile",
+  "/spam-detector":    "Spam Detector",
+  "/meeting-detector": "Meeting Detector",
+  "/summarizer":       "Email Summarizer",
 };
 
 export default function Navbar() {
@@ -77,7 +84,7 @@ export default function Navbar() {
             )}
 
             {/* Logo */}
-            <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
+            <Link href="/home" className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Mail size={15} className="text-white" />
               </div>

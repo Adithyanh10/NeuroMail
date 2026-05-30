@@ -7,6 +7,7 @@ import { clearToken, getToken } from "@/lib/apiClient";
 
 interface AuthState {
   isAuthenticated: boolean;
+  isHydrated: boolean;       // true once hydrate() has run
   token: string | undefined;
   username: string;
   email: string;
@@ -36,6 +37,7 @@ function loadUser(): { username: string; email: string; userId: string } {
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
+  isHydrated: false,
   token: undefined,
   username: "",
   email: "",
@@ -43,13 +45,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: (token, username = "", email = "", userId = "") => {
     saveUser(username, email, userId);
-    set({ isAuthenticated: true, token, username, email, userId });
+    set({ isAuthenticated: true, isHydrated: true, token, username, email, userId });
   },
 
   logout: () => {
     clearToken();
     if (typeof window !== "undefined") localStorage.removeItem(USER_KEY);
-    set({ isAuthenticated: false, token: undefined, username: "", email: "", userId: "" });
+    set({ isAuthenticated: false, isHydrated: true, token: undefined, username: "", email: "", userId: "" });
   },
 
   hydrate: () => {
@@ -57,6 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const user  = loadUser();
     set({
       isAuthenticated: !!token,
+      isHydrated: true,
       token,
       username: user.username,
       email:    user.email,

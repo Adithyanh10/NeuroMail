@@ -26,17 +26,20 @@ function ProfileBar({ label, value, max = 1 }: { label: string; value: number; m
 
 export default function WritingStylePage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [profile, setProfile] = useState<WritingStyleProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (!isAuthenticated) { router.push("/login"); return; }
-    getWritingStyle().then(setProfile).finally(() => setLoading(false));
-  }, [isAuthenticated, router]);
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) return null;
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getWritingStyle().then(setProfile).finally(() => setLoading(false));
+  }, [isAuthenticated]);
+
+  if (!isHydrated || !isAuthenticated) return null;
 
   const toneColors: Record<string, string> = {
     professional: "bg-blue-100 text-blue-700",

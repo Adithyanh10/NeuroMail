@@ -16,7 +16,7 @@ interface UploadedFile {
 
 export default function UploadPage() {
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [dragging, setDragging] = useState(false);
@@ -25,12 +25,8 @@ export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-
-  useEffect(() => {
-    if (!isAuthenticated) router.push("/login");
-  }, [isAuthenticated, router]);
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
   const handleFile = (file: File) => {
     const allowed = ["text/plain", "message/rfc822", "application/octet-stream"];
@@ -67,7 +63,7 @@ export default function UploadPage() {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

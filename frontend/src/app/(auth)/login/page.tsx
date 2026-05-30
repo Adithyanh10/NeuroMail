@@ -1,22 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { login } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import { Zap } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 import LoginAnimation from "@/components/LoginAnimation";
-
-const schema = z.object({
-  identifier: z.string().min(3, "Enter your email or username"),
-  password:   z.string().min(6, "Password must be at least 6 characters"),
-});
-type FormData = z.infer<typeof schema>;
 
 const DEMO_ID  = "demo@aimail.com";
 const DEMO_PWD = "Demo@1234";
@@ -25,140 +16,167 @@ export default function LoginPage() {
   const router   = useRouter();
   const setLogin = useAuthStore((s) => s.login);
 
-  const [showAnim, setShowAnim]   = useState(false);
-  const [animUser, setAnimUser]   = useState("User");
+  const [identifier, setIdentifier] = useState("");
+  const [password,   setPassword]   = useState("");
+  const [loading,    setLoading]    = useState(false);
+  const [showAnim,   setShowAnim]   = useState(false);
+  const [animUser,   setAnimUser]   = useState("User");
+  const [apiDone,    setApiDone]    = useState(false);   // API finished
+  const [timerDone,  setTimerDone]  = useState(false);   // 3.5s elapsed
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
-    useForm<FormData>({ resolver: zodResolver(schema) });
+  // Navigate only when BOTH the API has responded AND the minimum time has passed
+  useEffect(() => {
+    if (apiDone && timerDone) {
+      router.push("/home");
+    }
+  }, [apiDone, timerDone, router]);
 
-  const doLogin = async (identifier: string, password: string) => {
-    const response = await login({ identifier, password });
-    // Store user info in auth store
-    setLogin(response.access_token, response.username, response.email, response.user_id);
-    // Show animation with their name
-    setAnimUser(response.username || identifier);
+  const doLogin = async (id: string, pwd: string) => {
+    setApiDone(false);
+    setTimerDone(false);
+    // Show animation immediately
+    setAnimUser(id.split("@")[0] || id);
     setShowAnim(true);
-  };
+    setLoading(true);
 
-  const onSubmit = async (data: FormData) => {
+    // Minimum display timer — 3500ms
+    const minTimer = setTimeout(() => setTimerDone(true), 3500);
+
     try {
-      await doLogin(data.identifier, data.password);
-    } catch {
-      toast.error("Invalid credentials. Check your email/username and password.");
+      const response = await login({ identifier: id, password: pwd });
+      setLogin(response.access_token, response.username, response.email, response.user_id);
+      setAnimUser(response.username || id);
+      setApiDone(true);
+    } catch (err: unknown) {
+      clearTimeout(minTimer);
+      setShowAnim(false);
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+        ?? "Login failed. Check your credentials.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDemoLogin = async () => {
-    setValue("identifier", DEMO_ID);
-    setValue("password",   DEMO_PWD);
-    try {
-      await doLogin(DEMO_ID, DEMO_PWD);
-    } catch {
-      toast.error("Demo login failed — make sure the backend is running.");
-    }
+  // handleAnimDone is a fallback — navigation is driven by the useEffect above
+  const handleAnimDone = useCallback(() => {
+    if (apiDone) router.push("/home");
+  }, [router, apiDone]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const id  = identifier.trim() || DEMO_ID;
+    const pwd = password.trim()   || DEMO_PWD;
+    doLogin(id, pwd);
   };
 
-  // Called when animation finishes
-  const handleAnimDone = () => {
-    router.push("/dashboard");
+  const handleDemoLogin = () => {
+    setIdentifier(DEMO_ID);
+    setPassword(DEMO_PWD);
+    doLogin(DEMO_ID, DEMO_PWD);
   };
+
+  if (showAnim) {
+    return <LoginAnimation username={animUser} onComplete={handleAnimDone} />;
+  }
 
   return (
-    <>
-      {/* Login success animation overlay */}
-      {showAnim && <LoginAnimation username={animUser} onComplete={handleAnimDone} />}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <div className="card w-full max-w-md shadow-lg">
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-        <div className="card w-full max-w-md shadow-lg">
-
-          {/* Logo */}
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <Zap size={24} className="text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">AI Email Reply</h1>
-            <p className="text-sm text-gray-500 mt-1">Sign in to your account</p>
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Zap size={24} className="text-white" />
           </div>
-
-          {/* Demo banner */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-blue-800">🚀 Demo Account</p>
-                <p className="text-xs text-blue-600 mt-0.5 font-mono">{DEMO_ID}</p>
-                <p className="text-xs text-blue-600 font-mono">{DEMO_PWD}</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                className="shrink-0 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors"
-              >
-                One-Click Login
-              </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">or enter manually</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
-                Email or Username
-              </label>
-              <input
-                id="identifier"
-                type="text"
-                autoComplete="username"
-                placeholder="demo@aimail.com  or  Demo User"
-                className="input-field"
-                {...register("identifier")}
-              />
-              {errors.identifier && (
-                <p className="text-red-500 text-xs mt-1" role="alert">{errors.identifier.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="input-field"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1" role="alert">{errors.password.message}</p>
-              )}
-            </div>
-
-            <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
-              {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Signing in...
-                </span>
-              ) : "Sign In"}
-            </button>
-          </form>
-
-          <p className="text-sm text-gray-600 mt-5 text-center">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary-600 hover:underline font-medium">
-              Register
-            </Link>
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">AI Email Reply</h1>
+          <p className="text-sm text-gray-500 mt-1">Sign in to your account</p>
         </div>
+
+        {/* Demo banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-blue-800">🚀 Demo Account</p>
+              <p className="text-xs text-blue-600 mt-0.5 font-mono">{DEMO_ID}</p>
+              <p className="text-xs text-blue-600 font-mono">{DEMO_PWD}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors"
+            >
+              {loading ? <Loader2 size={14} className="animate-spin" /> : "One-Click Login"}
+            </button>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">or enter manually</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
+              Email or Username
+              <span className="ml-1 text-xs text-gray-400 font-normal">(leave blank for demo)</span>
+            </label>
+            <input
+              id="identifier"
+              type="text"
+              autoComplete="username"
+              placeholder="demo@aimail.com"
+              className="input-field"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+              <span className="ml-1 text-xs text-gray-400 font-normal">(leave blank for demo)</span>
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Signing in...
+              </>
+            ) : "Sign In"}
+          </button>
+        </form>
+
+        <p className="text-sm text-gray-600 mt-5 text-center">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+            Register
+          </Link>
+        </p>
       </div>
-    </>
+    </div>
   );
 }

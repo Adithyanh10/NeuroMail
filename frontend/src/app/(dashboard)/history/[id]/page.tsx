@@ -21,21 +21,23 @@ const PRIORITY_STYLES: Record<string, string> = {
 export default function HistoryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [item, setItem] = useState<EmailHistoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => { hydrate(); }, [hydrate]);
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) router.push("/login");
+  }, [isHydrated, isAuthenticated, router]);
 
   useEffect(() => {
-    if (!isAuthenticated) { router.push("/login"); return; }
+    if (!isAuthenticated) return;
     if (!id) return;
     getHistoryItem(id)
       .then(setItem)
       .catch(() => toast.error("Could not load this item"))
       .finally(() => setLoading(false));
-  }, [isAuthenticated, id, router]);
+  }, [isAuthenticated, id]);
 
   const handleCopy = async () => {
     if (!item) return;
@@ -51,7 +53,7 @@ export default function HistoryDetailPage() {
       year: "numeric", hour: "2-digit", minute: "2-digit",
     });
 
-  if (!isAuthenticated) return null;
+  if (!isHydrated || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

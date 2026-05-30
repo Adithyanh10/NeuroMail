@@ -25,6 +25,14 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 # Middleware
 # ---------------------------------------------------------------------------
+# NOTE: Starlette applies middleware in reverse-add order.
+# TrustedHostMiddleware must be added FIRST so it runs LAST (after CORS).
+# This prevents it from rejecting CORS preflight OPTIONS requests with 400.
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.ALLOWED_HOSTS,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,11 +40,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS,
 )
 
 # ---------------------------------------------------------------------------
@@ -76,17 +79,6 @@ async def seed_demo_user() -> None:
 async def startup_event() -> None:
     """Run tasks on application startup."""
     print(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-
-    # Auto-run migrations so the DB schema is always up to date
-    try:
-        from alembic.config import Config
-        from alembic import command
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
-        print("✓ Database migrations applied")
-    except Exception as e:
-        print(f"⚠ Migration warning (may be fine if already up to date): {e}")
-
     await seed_demo_user()
 
 
