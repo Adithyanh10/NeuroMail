@@ -57,12 +57,24 @@ class TrainedEmailModel:
         feature_text = f"{subject} [SEP] {email_content}" if subject else email_content
 
         # ── Predictions ───────────────────────────────────────────────────────
-        predicted_category = self.category_clf.predict([feature_text])[0]
-        predicted_priority = self.priority_clf.predict([feature_text])[0]
+        try:
+            predicted_category = self.category_clf.predict([feature_text])[0]
+            predicted_priority = self.priority_clf.predict([feature_text])[0]
 
-        # Category probabilities for confidence score
-        cat_proba = self.category_clf.predict_proba([feature_text])[0]
-        confidence = float(max(cat_proba))
+            cat_proba = self.category_clf.predict_proba([feature_text])[0]
+            confidence = float(max(cat_proba))
+
+        except Exception as e:
+            print(f"ML prediction failed: {e}")
+
+            predicted_category = "General"
+            predicted_priority = "Medium"
+            confidence = 0.60
+
+        # ── Retrieval ─────────────────────────────────────────────────────────
+        engine = self.retrieval_engine
+
+        
 
         # ── Retrieval ─────────────────────────────────────────────────────────
         engine = self.retrieval_engine
