@@ -77,19 +77,30 @@ class TrainedEmailModel:
         
 
         # ── Retrieval ─────────────────────────────────────────────────────────
-        engine = self.retrieval_engine
-        query_vec = engine["vectorizer"].transform([feature_text])
-        sims = cosine_similarity(query_vec, engine["tfidf_matrix"]).flatten()
+        try:
+            engine = self.retrieval_engine
 
-        # Filter by predicted category for better relevance
-        category_mask = [
-            1.0 if c == predicted_category else 0.3
-            for c in engine["categories"]
-        ]
-        weighted_sims = sims * category_mask
-        best_idx = int(weighted_sims.argmax())
+            query_vec = engine["vectorizer"].transform([feature_text])
+            sims = cosine_similarity(query_vec, engine["tfidf_matrix"]).flatten()
 
-        raw_reply = engine["replies"][best_idx]
+            category_mask = [
+                1.0 if c == predicted_category else 0.3
+                for c in engine["categories"]
+            ]
+
+            weighted_sims = sims * category_mask
+            best_idx = int(weighted_sims.argmax())
+
+            raw_reply = engine["replies"][best_idx]
+
+        except Exception as e:
+            print(f"Retrieval failed: {e}")
+
+            raw_reply = (
+                "Thank you for your email. I have reviewed your message and "
+                "will respond shortly. Please let me know if you need any "
+                "additional assistance."
+            )
 
         # ── Tone adaptation ───────────────────────────────────────────────────
         adapted_reply = _adapt_tone(raw_reply, tone)
