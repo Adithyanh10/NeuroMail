@@ -21,8 +21,10 @@ WORKDIR /app
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy application source
+# Copy application source AND alembic config
 COPY app/ ./app/
+COPY migrations/ ./migrations/
+COPY alembic.ini ./alembic.ini
 
 # Non-root user for security
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser

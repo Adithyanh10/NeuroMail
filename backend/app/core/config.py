@@ -26,17 +26,17 @@ class Settings(BaseSettings):
     # Database (Supabase / PostgreSQL)
     DATABASE_URL: str
 
-    # AWS
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
+    # AWS (optional — only needed for S3 file uploads)
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
     AWS_REGION: str = "us-east-1"
-    S3_BUCKET_NAME: str
+    S3_BUCKET_NAME: str = ""
 
     # ML Server
     ML_SERVER_URL: str = "http://ml-server:8001"
 
-    # CORS / Hosts
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    # CORS / Hosts — add your deployed frontend URL here
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
     ALLOWED_HOSTS: List[str] = ["*"]
 
 

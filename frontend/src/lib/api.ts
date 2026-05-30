@@ -6,12 +6,12 @@ import type {
 } from "@/types";
 
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
-  const { data } = await apiClient.post<RegisterResponse>("/register", payload);
+  const { data } = await apiClient.post<RegisterResponse>("/api/v1/register", payload);
   return data;
 }
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
   // Send as { identifier, password } — backend accepts email or username
-  const { data } = await apiClient.post<AuthResponse>("/login", {
+  const { data } = await apiClient.post<AuthResponse>("/api/v1/login", {
     identifier: payload.identifier,
     password: payload.password,
   });
